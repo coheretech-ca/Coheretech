@@ -1,0 +1,34 @@
+name: Unzip and Deploy to Pages
+
+on:
+  push:
+    branches:
+      - main  # Runs whenever you upload/push to the main branch
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Extract ZIP File
+        run: |
+          unzip coheretech-site.zip -d extracted_site/
+          # Ensure index.html is in the right place
+          mv extracted_site/* . || true 
+          rm -rf extracted_site coheretech-site.zip
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        
