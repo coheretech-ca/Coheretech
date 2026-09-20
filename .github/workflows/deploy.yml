@@ -1,34 +1,27 @@
-name: Unzip and Deploy to Pages
-
+name: Deploy site
 on:
   push:
-    branches:
-      - main  # Runs whenever you upload/push to the main branch
-
+    branches: [main]
+  workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
-
+concurrency:
+  group: pages
+  cancel-in-progress: true
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Extract ZIP File
-        run: |
-          unzip coheretech-site.zip -d extracted_site/
-          # Ensure index.html is in the right place
-          mv extracted_site/* . || true 
-          rm -rf extracted_site coheretech-site.zip
-
-      - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v4
+      - run: mkdir _site && unzip -q coheretech-site.zip -d _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
+          path: _site
+      - id: deployment
         uses: actions/deploy-pages@v4
-        
